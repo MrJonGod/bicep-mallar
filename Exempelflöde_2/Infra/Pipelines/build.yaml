@@ -1,0 +1,47 @@
+jobs:
+- job:
+
+  steps:
+  - checkout: self
+    clean: true
+
+  - task: NuGetAuthenticate@1 
+    
+  - task: DotNetCoreCLI@2
+    displayName: 'Restore nuget for solution'
+    inputs:
+      command: 'restore'
+      projects: '**/*.sln'
+      feedsToUse: 'select'
+      vstsFeed: '9fe049b3-1c54-49bb-971b-1910383ebe2a/88c68654-bd68-4695-a74f-f9012aa71ab0' #SX feed
+
+  - task: DotNetCoreCLI@2
+    displayName: 'Build project'
+    inputs:
+      command: 'build'
+      projects: '**/*.csproj'
+      arguments: '--configuration Release'
+
+  - task: DotNetCoreCLI@2
+    displayName: 'Publish'
+    inputs:
+      command: publish
+      projects: '**/*.csproj'
+      publishWebProjects: False
+      arguments: '--configuration Release --output $(Build.ArtifactStagingDirectory)'
+      zipAfterPublish: True   
+
+  - task: PublishPipelineArtifact@1
+    displayName: 'Publish Function files as pipeline artifacts'
+    inputs:
+      targetPath: '$(Build.ArtifactStagingDirectory)'
+      artifact: 'FunctionAppCodeArtifact'
+
+  #Bara för debugg - vad har vi att jobba med i nästa steg? 
+  - task: PowerShell@2
+    displayName: 'Lista innehåll i Artifact Staging Directory'
+    inputs:
+      targetType: 'inline'
+      script: |
+        Write-Host "Innehåll i $(Build.ArtifactStagingDirectory):"
+        Get-ChildItem -Path "$(Build.ArtifactStagingDirectory)" -Recurse

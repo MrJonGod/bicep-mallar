@@ -1,0 +1,26 @@
+parameters:
+  - name: functionAppName
+    type: string 
+  - name: projectName
+    type: string
+  - name: serviceConnection
+    type: string 
+
+jobs:
+- job:
+  steps:
+  - task: DownloadPipelineArtifact@2
+    displayName: 'Download the .zip file produced in the Build stage'
+    inputs:
+      buildType: 'current'
+      artifactName: 'FunctionAppCodeArtifact'
+      targetPath: '$(System.DefaultWorkingDirectory)/downloads'
+
+  - task: AzureFunctionApp@2
+    displayName: 'Deploy function app code'
+    inputs:
+      connectedServiceNameARM: ${{ parameters.serviceConnection }}
+      appType: 'functionApp'
+      appName: ${{ parameters.functionAppName }}
+      package: '$(System.DefaultWorkingDirectory)/downloads/${{ parameters.projectName }}.zip'
+      deploymentMethod: 'auto'

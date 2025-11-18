@@ -1,0 +1,89 @@
+# Projektplan – Version 3
+## AI-stött arbetssätt för generering av enkla Azure-integrationsflöden (PoC)
+
+## 1. Bakgrund
+SX bygger återkommande integrationsflöden i Azure med Bicep. Arbetet innebär ofta manuell kopiering av kod, variation mellan utvecklare och hög tröskel för nya personer. Teamet vill ha ett mer enhetligt sätt att skapa flöden och ett sätt för Copilot att följa SX:s standard i stället för att generera lösningar från grunden.
+
+Den här PoC:n visar ett koncept, inte ett färdigt verktyg: ett enkelt repo med ett flöde, en agentfil och en guidning via GitHub MCP i VS Code.
+
+## 2. Syfte
+Att demonstrera att ett AI-styrt arbetssätt kan:
+- minska manuell kodkopiering,
+- ge mer enhetliga flöden,
+- förenkla onboarding,
+- skapa ett snabbare sätt att generera ”stommar” för återanvändbara integrationer.
+
+## 3. Mål för PoC (inom 2 veckor)
+**Leverabler:**
+1. GitHub-repo med:
+   - ett mycket enkelt flöde (baserat på Josefins exempel),
+   - main.bicep,
+   - enkel mappstruktur,
+   - AGENT.md med 2–4 variabler,
+   - exempel på .bicepparam.
+2. Agentflöde via GitHub MCP i VS Code som kan:
+   - lista flöden,
+   - ställa frågor utifrån AGENT.md,
+   - generera/uppdatera .bicepparam,
+   - validera flödet.
+3. Enkel Power BI-visning baserad på repo-telemetri.
+4. Dokumentation av arbetssätt och rekommendationer.
+
+## 4. Avgränsningar
+- Endast ett flöde ingår i PoC.
+- Ingen modulutveckling; endast enklaste möjliga struktur.
+- Endast GitHub MCP, ingen egen MCP-server.
+- Allt körs i sandbox.
+- What-if är bonus.
+
+## 5. Arbetssätt och metod
+**Repo-struktur:**
+/flows/
+simple-pattern/
+main.bicep
+main.bicepparam.example
+AGENT.md
+README.md
+
+
+**AGENT.md:**
+- Definierar 2–4 variabler.
+- Beskriver namnstandard i enkel form.
+- Innehåller korta regler för agenten.
+
+**PoC-flöde i VS Code:**
+1. Användaren ber agenten lista flöden.
+2. Väljer testflödet.
+3. Agenten läser AGENT.md och ställer frågor.
+4. .bicepparam genereras.
+5. Validering utförs.
+6. Flödet kan sparas eller PR-förslag skapas.
+
+## 6. Tidsplan (2 veckor)
+**Vecka 1**
+- Sätta upp repo, förenkla flöde, skapa AGENT.md.
+- Testa MCP-flöde, generera .bicepparam första gången.
+
+**Vecka 2**
+- Validering och förbättring av Q&A-logik.
+- Minimal Power BI-rapport.
+- Dokumentation och slutgenomgång.
+
+## 7. Förväntat resultat
+- En fungerande PoC som visar konceptet.
+- Ett första standardiserat flöde.
+- Underlag för vidare utveckling av mallbibliotek och arbetssätt.
+- Rekommendationer kring versionering, förvaltning och framtida förbättringar.
+
+## 8. Risker och hantering
+- **Scope creep:** håll allt till ett flöde.
+- **Komplexitet i MCP:** använd enbart GitHub MCP.
+- **Otydliga mallar:** basera allt direkt på Josefins exempel.
+- **Förvaltning:** dokumentera rekommenderat arbetssätt i rapporten.
+
+## 9. Långsiktig potential (utanför scope)
+- Mallbibliotek per kund/typfall.
+- AVM-moduler.
+- Automatisk versionering och statistik.
+- Egen MCP-server.
+- What-if/Motif som kvalitetssäkring.

@@ -1,0 +1,116 @@
+trigger:
+  branches:
+    include:
+      - main
+      - develop
+
+  paths:
+    include:
+      - '*'
+
+pool: 
+  vmImage: "windows-latest"
+
+variables: 
+  solutionName: Telge.TN.Temperature
+  serviceConnectionTest: SC-Telge-Azure-Integration-Dev
+  serviceConnectionProd: SC-Telge-Azure-Integration-Prod
+  azureResourceGroupTest: tn-temperature-euwe-rg-tst
+  azureResourceGroupProd: tn-temperature-euwe-rg-prd
+  receiverFunctionAppNameTest: tn-temperature-receiver-euwe-func-tst
+  receiverFunctionAppNameProd: tn-temperature-receiver-euwe-func-prd
+  senderFunctionAppNameTest: tn-temperature-sender-euwe-func-tst
+  senderFunctionAppNameProd: tn-temperature-sender-euwe-func-prd
+
+stages:
+  # BUILD
+  - stage: Build
+    jobs:
+    - template: build.yaml
+
+  - stage: BuildInfra
+    dependsOn: Build
+    condition: in(coalesce(dependencies.Build.result, 'ManuallySkipped'), 'Succeeded', 'Skipped', 'ManuallySkipped')
+    jobs:
+    - template: buildinfra.yaml
+
+  # TEST
+  - stage: DeployInfraToTest
+    dependsOn: BuildInfra
+    jobs:
+    - template: deployinfra.yaml
+      parameters:
+        environment: tst
+        serviceConnection: ${{ variables.serviceConnectionTest }}
+        azureLocation: westeurope
+        azureResourceGroup:  ${{ variables.azureResourceGroupTest }}
+        bicepParameterFile: main.tst.bicepparam
+
+  - stage: DeployReceiverToTest
+    dependsOn: 
+      - Build 
+      - DeployInfraToTest
+    condition: in(coalesce(dependencies.DeployInfraToTest.result, 'ManuallySkipped'), 'Succeeded', 'Skipped', 'ManuallySkipped')
+    jobs:
+    - template: deploy.yaml
+      parameters:
+        functionAppName: ${{ variables.receiverFunctionAppNameTest }}
+        projectName: ${{ variables.solutionName }}.Receiver
+        serviceConnection: ${{ variables.serviceConnectionTest }}
+
+  - stage: DeploySenderToTest
+    dependsOn: 
+      - Build 
+      - DeployInfraToTest
+    condition: in(coalesce(dependencies.DeployInfraToTest.result, 'ManuallySkipped'), 'Succeeded', 'Skipped', 'ManuallySkipped')
+    jobs:
+    - template: deploy.yaml
+      parameters:
+        functionAppName: ${{ variables.senderFunctionAppNameTest }}
+        projectName: ${{ variables.solutionName }}.Sender
+        serviceConnection: ${{ variables.serviceConnectionTest }}
+
+  # PROD
+  - stage: DeployInfraToProd
+    condition: and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/heads/main'))
+    dependsOn: BuildInfra
+    jobs:
+    - template: deployinfra.yaml
+      parameters:
+        environment: prd
+        serviceConnection: ${{ variables.serviceConnectionProd }}
+        azureLocation: westeurope
+        azureResourceGroup: ${{ variables.azureResourceGroupProd }} 
+        bicepParameterFile: main.prd.bicepparam
+
+  - stage: DeployReceiverToProd
+    dependsOn: 
+      - Build 
+      - DeployInfraToProd
+    condition: and(
+      succeeded(),
+      startsWith(variables['build.sourceBranch'], 'refs/heads/main'),
+      in(coalesce(dependencies.DeployInfraToProd.result, 'ManuallySkipped'), 'Succeeded', 'Skipped', 'ManuallySkipped')
+      )
+    jobs:
+    - template: deploy.yaml
+      parameters:
+        functionAppName: ${{ variables.receiverFunctionAppNameProd }} 
+        projectName: ${{ variables.solutionName }}.Receiver
+        serviceConnection:  ${{ variables.serviceConnectionProd }}
+
+  - stage: DeploySenderToProd
+    dependsOn: 
+      - Build 
+      - DeployInfraToProd
+    condition: and(
+      succeeded(),
+      startsWith(variables['build.sourceBranch'], 'refs/heads/main'),
+      in(coalesce(dependencies.DeployInfraToProd.result, 'ManuallySkipped'), 'Succeeded', 'Skipped', 'ManuallySkipped')
+      )
+    jobs:
+    - template: deploy.yaml
+      parameters:
+        functionAppName: ${{ variables.senderFunctionAppNameProd }} 
+        projectName: ${{ variables.solutionName }}.Sender
+        serviceConnection:  ${{ variables.serviceConnectionProd }}

@@ -1,0 +1,57 @@
+parameters:
+  - name: environment
+    type: string
+  - name: serviceConnection
+    type: string 
+  - name: azureLocation 
+    type: string
+  - name: azureResourceGroup 
+    type: string
+  - name: bicepParameterFile 
+    type: string
+
+jobs:
+- job:
+  steps:
+  - download: current
+    artifact: BicepTemplates
+
+  - task: AzureCLI@2
+    displayName: 'Deploy infra with bicep and azure cli'
+    inputs: 
+        azureSubscription: ${{ parameters.serviceConnection }}
+        scriptType: pscore
+        scriptLocation: inlineScript
+        failOnStandardError: true
+        useGlobalConfig: false
+        inlineScript: |
+ 
+          $templateFile = "$(Pipeline.Workspace)/BicepTemplates/main.bicep"
+          $resourceGroupName = "${{ parameters.azureResourceGroup }}"
+          $envParamFile = "$(Pipeline.Workspace)/BicepTemplates/${{ parameters.bicepParameterFile }}"
+
+          Write-Host $templateFile
+          Write-Host $resourceGroupName
+          Write-Host $envParamFile
+
+          if((az group exists --resource-group $resourceGroupName) -ne 'true')
+          {
+            az group create --name $resourceGroupName --location ${{ parameters.azureLocation }} --tags costcenter=t owner=tbd service=biztalk environment='${{ parameters.environment }}'
+          }
+          else
+          {
+            az group update --resource-group $resourceGroupName --tags costcenter=t owner=tbd service=biztalk environment='${{ parameters.environment }}'
+          }
+
+          $deploymentName = "main.bicep_" + "$(openssl rand -hex 4)"
+          
+          Write-Host $deploymentName
+
+          $azDeployment = az deployment group create `
+            --name $deploymentName `
+            --resource-group $resourceGroupName `
+            --template-file $templateFile `
+            --parameters $envParamFile `
+            --parameters existingAppSettings=@$existingAppSettingsFile
+            
+          Write-Output $azDeployment

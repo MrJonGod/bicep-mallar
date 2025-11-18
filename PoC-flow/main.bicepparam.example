@@ -1,0 +1,15 @@
+using './main.bicep'
+
+// Example parameters for PoC deployment
+// Customer: Solution Xperts
+// Domain: Integration
+// Function: Demo/PoC
+// Environment: Development
+// Region: Sweden Central
+
+param customerPrefix = 'sx'
+param domain = 'int'
+param function = 'demo'
+param subfunction = ''
+param environment = 'd'
+param location = 'swedencentral'

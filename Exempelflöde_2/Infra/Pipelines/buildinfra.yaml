@@ -1,0 +1,21 @@
+jobs: 
+- job: Build
+  displayName: 'Build artifacts and publish to ArtifactStagingDirectory'
+  steps:
+
+    - checkout: self
+
+    - task: CopyFiles@2
+      displayName: 'Copy Files from Infra folder'
+      inputs:
+        CleanTargetFolder: true
+        SourceFolder: Infra
+        Contents: '**'
+        TargetFolder: '$(Build.ArtifactStagingDirectory)'
+        flattenFolders: false
+
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish Files to: $(Build.ArtifactStagingDirectory)'
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)'
+        artifact: 'BicepTemplates'
