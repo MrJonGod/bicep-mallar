@@ -9,7 +9,7 @@ Detta flöde skapar en minimal Azure-infrastruktur bestående av:
 - **Application Insights** - För applikationsövervakning
 - **Log Analytics Workspace** - För logghantering och analys
 
-Alla resurser namnges enligt SX:s standard dokumenterad i `../Namnstandard.txt`.
+Alla resurser namnges enligt SX:s standard.
 
 ## Förutsättningar
 
@@ -178,7 +178,7 @@ Bicep-templaten konverterar automatiskt Azure-regioner till standardförkortning
 För AI-assisterad deployment, se `AGENT.md` för detaljerade instruktioner om hur en AI-agent ska:
 1. Ställa rätt frågor till användaren
 2. Validera parametrar (särskilt storage account-namnlängd)
-3. Generera korrekt `.bicepparam`-fil
+3. Generera korrekt `.bicepparam`-fil och klona `main.bicep`
 4. Föreslå deployment-kommandon
 
 ## Felsökning
@@ -225,19 +225,11 @@ För att ta bort alla resurser:
 az group delete --name sx-int-demo-d-rg --yes --no-wait
 ```
 
-## Nästa steg
-
-1. **Validering**: Testa deployment i sandbox-miljö
-2. **Utökning**: Lägg till fler resurser (Function App, Service Bus, etc.) vid behov
-3. **Automation**: Skapa Azure DevOps pipeline eller GitHub Actions för automatisk deployment
-4. **Power BI**: Implementera telemetri och rapportering för deployment-statistik
-
 ## Relaterade filer
 
 - `main.bicep` - Bicep-template för infrastrukturen
 - `main.bicepparam.example` - Exempelparametrar
 - `AGENT.md` - Instruktioner för AI-agenter
-- `../Namnstandard.txt` - Fullständig namnstandarddokumentation
 
 ## Support
 
